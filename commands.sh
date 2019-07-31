@@ -2,6 +2,7 @@
 set -ex
 
 build(){
+	cd $GOPATH/src/github.com/ypapax/status_check/apps/status_check
 	go install
 }
 
