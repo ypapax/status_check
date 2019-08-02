@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 
 	"github.com/ypapax/jsn"
 
@@ -113,8 +116,18 @@ func Serve(conf Config) error {
 			}
 		}(i)
 	}
-	forever := make(chan bool)
-	<-forever
+	statusHandler := status.NewStatusHandler(statusService)
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/services-count/available/{from_ts}/{to_ts}", statusHandler.AvailableServices).Methods("GET")
+	router.HandleFunc("/services-count/not-available/{from_ts}/{to_ts}", statusHandler.NotAvailableServices).Methods("GET")
+	router.HandleFunc("/services-count/faster/{dur_ms}/{from_ts}/{to_ts}", statusHandler.ServicesWithResponseFasterThan).Methods("GET")
+	router.HandleFunc("/services-count/slower/{dur_ms}/{from_ts}/{to_ts}", statusHandler.ServicesWithResponseSlowerThan).Methods("GET")
+
+	logrus.Println("Listening on  " + conf.Bind)
+	if err := http.ListenAndServe(conf.Bind, nil); err != nil {
+		logrus.Error(err)
+		return err
+	}
 
 	return nil
 }
