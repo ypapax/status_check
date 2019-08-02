@@ -48,6 +48,7 @@ func (r *serviceRepository) FindAll() ([]web_service.WebService, error) {
 			logrus.Error(err)
 			return err
 		}
+		ss = append(ss, s)
 		return nil
 	}
 	if err := scanAll(r.db, scan, query); err != nil {

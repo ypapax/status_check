@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"time"
 
+	"github.com/ypapax/jsn"
+
 	"github.com/sirupsen/logrus"
 	"github.com/ypapax/status_check/database/psql"
 	"github.com/ypapax/status_check/job"
@@ -61,6 +63,8 @@ func Serve(conf Config) error {
 		return err
 	}
 
+	logrus.Println("services ", len(ss), jsn.B(ss))
+
 	var sts statuses.Statuses
 	go func() {
 		t := time.NewTicker(writeStatusesToDbPeriod)
@@ -77,28 +81,37 @@ func Serve(conf Config) error {
 	}()
 
 	var jobs = make(chan job.Job, conf.Workers)
-	for _, s := range ss {
-		jobs <- job.Job{Service: &s}
-	}
+	go func() {
+		for _, s := range ss {
+			jobs <- job.Job{Service: &s}
+			logrus.Println("jobs size", len(jobs))
+		}
+	}()
 	for i := 0; i < conf.Workers; i++ {
-		go func() {
-			j := <-jobs
-			defer func() {
-				jobs <- j
-			}()
-			if !j.LastCheckedTime.IsZero() && time.Since(j.LastCheckedTime) < conf.CheckPeriod {
-				return
-			}
-			j.LastCheckedTime = time.Now()
+		logrus.Println("starting worker ", i)
+		go func(worker int) {
+			for {
+				func() {
+					j := <-jobs
+					logrus.Println("worker receives job ", j)
+					defer func() {
+						jobs <- j
+					}()
+					if !j.LastCheckedTime.IsZero() && time.Since(j.LastCheckedTime) < conf.CheckPeriod {
+						return
+					}
+					j.LastCheckedTime = time.Now()
 
-			status, err := webServicesService.CheckStatus(j.Service, conf.Schemas)
-			if err != nil {
-				err := fmt.Errorf("error %+v for checking service %+v", err, j.Service)
-				logrus.Error(err)
-				return
+					status, err := webServicesService.CheckStatus(j.Service, conf.Schemas)
+					if err != nil {
+						err := fmt.Errorf("error %+v for checking service %+v", err, j.Service)
+						logrus.Error(err)
+						return
+					}
+					sts.Add(*status)
+				}()
 			}
-			sts.Add(*status)
-		}()
+		}(i)
 	}
 	forever := make(chan bool)
 	<-forever

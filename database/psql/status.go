@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ypapax/jsn"
+
 	"github.com/ypapax/status_check/status"
 
 	_ "github.com/lib/pq"
@@ -27,17 +29,18 @@ func (r *statusRepository) Create(statuses []status.Status) error {
 	var argsNumbers = make([]string, len(statuses))
 	var args = make([]interface{}, len(statuses)*argsAmountPerRecord)
 	var argCounter = 1
-	for _, s := range statuses {
-		argsNumbers = append(argsNumbers, fmt.Sprintf("($%d, $%d, $%d, $%d)", argCounter, argCounter+1, argCounter+2, argCounter+3))
+	for i, s := range statuses {
+		argsNumbers[i] = fmt.Sprintf("($%d, $%d, $%d, $%d)", argCounter, argCounter+1, argCounter+2, argCounter+3)
 		args[argCounter-1] = s.Available
 		args[argCounter] = s.Created
-		args[argCounter+1] = s.ResponseTime.Seconds() / 1000
+		args[argCounter+1] = int(s.ResponseTime.Seconds() * 1000)
 		args[argCounter+2] = s.ServiceID
 		argCounter += argsAmountPerRecord
 	}
-	query := fmt.Sprintf(`INSERT INTO statuses(available, created, response_ms, service_id) VALUES %s`, strings.Join(argsNumbers, ", "))
+	query := fmt.Sprintf(`INSERT INTO status(available, created, response_ms, service_id) VALUES %s`, strings.Join(argsNumbers, ", "))
 	result, err := r.db.Exec(query, args...)
 	if err != nil {
+		err := fmt.Errorf("error: %+v for query %+v, argNumbers: %+v", err, query, jsn.B(argsNumbers))
 		logrus.Error(err)
 		return err
 	}
@@ -46,7 +49,7 @@ func (r *statusRepository) Create(statuses []status.Status) error {
 		logrus.Error(err)
 		return err
 	}
-	logrus.Println("inserted %+v rows into status table", rows)
+	logrus.Printf("inserted %+v rows into status table", rows)
 	return nil
 }
 func (r *statusRepository) AvailableServices(from, to time.Time) (int, error) {
@@ -122,7 +125,7 @@ func (r *statusRepository) ServicesWithResponseSlowerThan(dur time.Duration, fro
 		}
 		return nil
 	}
-	if err := scanAll(r.db, scan, query, from, to, dur.Seconds()/1000); err != nil {
+	if err := scanAll(r.db, scan, query, from, to, int(dur.Seconds()*1000)); err != nil {
 		logrus.Error(err)
 		return 0, err
 	}

@@ -3,8 +3,9 @@ package web_service
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"time"
+
+	"github.com/ypapax/jsn"
 
 	"github.com/sirupsen/logrus"
 	"github.com/ypapax/status_check/status"
@@ -43,6 +44,7 @@ func (s *webServiceService) FindAllWebServices() ([]WebService, error) {
 }
 
 func (s *webServiceService) CheckStatus(service *WebService, schemes []string) (*status.Status, error) {
+	logrus.Println("checking status for web service ", jsn.B(service), " with schemes ", schemes)
 	if len(schemes) == 0 {
 		err := fmt.Errorf("missing schemes")
 		logrus.Error(err)
@@ -69,17 +71,13 @@ func (s *webServiceService) CheckStatus(service *WebService, schemes []string) (
 }
 
 func req(scheme, addr string) (*int, *time.Duration, error) {
-	u, err := url.Parse(addr)
-	if err != nil {
-		logrus.Error(err)
-		return nil, nil, err
-	}
-	u.Scheme = scheme
+	u := scheme + "://" + addr
 	var netClient = &http.Client{
 		Timeout: reqTimeout,
 	}
+	logrus.Println("requesting ", u, " with scheme ", scheme, " and addr ", addr)
 	t1 := time.Now()
-	response, err := netClient.Get(u.String())
+	response, err := netClient.Get(u)
 	dur := time.Since(t1)
 	if err != nil {
 		logrus.Error(err)
