@@ -19,4 +19,8 @@ runc(){
 	docker-compose up
 }
 
+testl(){
+	cd test
+	go test -v
+}
 $@

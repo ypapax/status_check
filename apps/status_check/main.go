@@ -9,7 +9,6 @@ import (
 
 func main() {
 	logrus.SetReportCaller(true)
-
 	var confPath string
 	flag.StringVar(&confPath, "conf", "conf.yaml", "path to config file")
 	flag.Parse()

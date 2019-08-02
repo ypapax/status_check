@@ -122,6 +122,7 @@ func Serve(conf Config) error {
 	router.HandleFunc("/services-count/not-available/{from_ts}/{to_ts}", statusHandler.NotAvailableServices).Methods("GET")
 	router.HandleFunc("/services-count/faster/{dur_ms}/{from_ts}/{to_ts}", statusHandler.ServicesWithResponseFasterThan).Methods("GET")
 	router.HandleFunc("/services-count/slower/{dur_ms}/{from_ts}/{to_ts}", statusHandler.ServicesWithResponseSlowerThan).Methods("GET")
+	http.Handle("/", accessControl(router))
 
 	logrus.Println("Listening on  " + conf.Bind)
 	if err := http.ListenAndServe(conf.Bind, nil); err != nil {
@@ -170,4 +171,18 @@ func createServices(webServicesService web_service.Service, addresses []string) 
 		return err
 	}
 	return nil
+}
+
+func accessControl(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+
+		h.ServeHTTP(w, r)
+	})
 }
