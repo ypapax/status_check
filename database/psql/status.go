@@ -49,7 +49,7 @@ func (r *statusRepository) Create(statuses []status.Status) error {
 		logrus.Error(err)
 		return err
 	}
-	logrus.Printf("inserted %+v rows into status table", rows)
+	logrus.Printf("inserted %+v rows into status table, query: %+v, args: %+v", rows, query, jsn.B(args))
 	return nil
 }
 func (r *statusRepository) AvailableServices(from, to time.Time) (int, error) {

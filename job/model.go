@@ -6,6 +6,6 @@ import (
 )
 
 type Job struct {
-	Service *web_service.WebService
+	Service web_service.WebService
 	LastCheckedTime time.Time
 }

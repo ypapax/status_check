@@ -86,7 +86,9 @@ func Serve(conf Config) error {
 	var jobs = make(chan job.Job, conf.Workers)
 	go func() {
 		for _, s := range ss {
-			jobs <- job.Job{Service: &s}
+			j := job.Job{Service: s}
+			logrus.Printf("sending job %+v to jobs channel", j)
+			jobs <- j
 			logrus.Println("jobs size", len(jobs))
 		}
 	}()
@@ -95,17 +97,22 @@ func Serve(conf Config) error {
 		go func(worker int) {
 			for {
 				func() {
+					logrus.Trace("before getting job item to process")
 					j := <-jobs
-					logrus.Println("worker receives job ", j)
+					logrus.Tracef("worker %+v receives job %+v", worker, j)
 					defer func() {
-						jobs <- j
+						go func() {
+							logrus.Tracef("about to write job %+v to jobs chan", j)
+							jobs <- j
+							logrus.Tracef("have written job %+v to jobs chan", j)
+						}()
 					}()
 					if !j.LastCheckedTime.IsZero() && time.Since(j.LastCheckedTime) < conf.CheckPeriod {
 						return
 					}
 					j.LastCheckedTime = time.Now()
 
-					status, err := webServicesService.CheckStatus(j.Service, conf.Schemas)
+					status, err := webServicesService.CheckStatus(&j.Service, conf.Schemas)
 					if err != nil {
 						err := fmt.Errorf("error %+v for checking service %+v", err, j.Service)
 						logrus.Error(err)

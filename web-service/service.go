@@ -55,17 +55,22 @@ func (s *webServiceService) CheckStatus(service *WebService, schemes []string) (
 		code, dur, err := req(sch, service.Address)
 		if err != nil {
 			logrus.Error(err)
-			return nil, err
+			continue
 		}
 		st = &status.Status{
 			ResponseTime: *dur,
 			ServiceID:    service.ID,
 			Created:      time.Now(),
 		}
-		if _, ok := notAvailableStatusCodes[*code]; ok {
-			st.Available = true
-			return st, nil
-		}
+		logrus.Println("status code ", *code, " for requesting ", sch, " ", service.Address)
+		_, badStatus := notAvailableStatusCodes[*code]
+		st.Available = !badStatus
+		break
+	}
+	if st == nil {
+		err := fmt.Errorf("couldn't get status for %+v", service)
+		logrus.Error(err)
+		return nil, err
 	}
 	return st, nil
 }
