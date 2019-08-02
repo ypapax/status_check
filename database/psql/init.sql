@@ -3,7 +3,7 @@ CREATE DATABASE status_check;
 CREATE TABLE "service"
 (
     id      bigserial primary key,
-    address varchar(100) NOT NULL,
+    address varchar(100) NOT NULL UNIQUE,
     created timestamp    NOT NULL
 );
 
@@ -16,4 +16,4 @@ CREATE TABLE "status"
     service_id  integer REFERENCES service (id)
 );
 
-CREATE INDEX status_created_idx ON status USING hash (created, available, response_ms);
+CREATE INDEX status_created_idx ON status USING btree(created, available, response_ms);

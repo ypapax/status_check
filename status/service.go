@@ -3,7 +3,7 @@ package status
 import "time"
 
 type Service interface {
-	CreateStatus(status *Status, serviceID int) error
+	CreateStatus(status []Status) error
 	AvailableServices(from, to time.Time) (int, error)
 	NotAvailableServices(from, to time.Time) (int, error)
 	ServicesWithResponseFasterThan(dur time.Duration, from, to time.Time) (int, error)
@@ -20,10 +20,8 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *statusService) CreateStatus(status *Status, serviceID int) error {
-	status.Created = time.Now()
-	status.ServiceID = serviceID
-	return s.repo.Create(status)
+func (s *statusService) CreateStatus(statuses []Status) error {
+	return s.repo.Create(statuses)
 }
 
 func (s *statusService) AvailableServices(from, to time.Time) (int, error) {

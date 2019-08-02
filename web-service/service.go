@@ -1,9 +1,23 @@
 package web_service
 
-import "time"
+import (
+	"fmt"
+	"net/http"
+	"net/url"
+	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/ypapax/status_check/status"
+)
+
+const reqTimeout = time.Second * 10
+
+var notAvailableStatusCodes = map[int]struct{}{502: {}, 503: {}, 504: {}}
 
 type Service interface {
-	CreateWebService(service *WebService) error
+	CreateWebServices(service []WebService) error
+	CheckStatus(service *WebService, schemes []string) (*status.Status, error)
+	FindAllWebServices() ([]WebService, error)
 }
 
 type webServiceService struct {
@@ -16,7 +30,60 @@ func NewService(repo Repo) Service {
 	}
 }
 
-func (s *webServiceService) CreateWebService(service *WebService) error {
-	service.Created = time.Now()
-	return s.repo.Create(service)
+func (s *webServiceService) CreateWebServices(services []WebService) error {
+	now := time.Now()
+	for _, s := range services {
+		s.Created = now
+	}
+	return s.repo.Create(services)
+}
+
+func (s *webServiceService) FindAllWebServices() ([]WebService, error) {
+	return s.repo.FindAll()
+}
+
+func (s *webServiceService) CheckStatus(service *WebService, schemes []string) (*status.Status, error) {
+	if len(schemes) == 0 {
+		err := fmt.Errorf("missing schemes")
+		logrus.Error(err)
+		return nil, err
+	}
+	var st *status.Status
+	for _, sch := range schemes {
+		code, dur, err := req(sch, service.Address)
+		if err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
+		st = &status.Status{
+			ResponseTime: *dur,
+			ServiceID:    service.ID,
+			Created:      time.Now(),
+		}
+		if _, ok := notAvailableStatusCodes[*code]; ok {
+			st.Available = true
+			return st, nil
+		}
+	}
+	return st, nil
+}
+
+func req(scheme, addr string) (*int, *time.Duration, error) {
+	u, err := url.Parse(addr)
+	if err != nil {
+		logrus.Error(err)
+		return nil, nil, err
+	}
+	u.Scheme = scheme
+	var netClient = &http.Client{
+		Timeout: reqTimeout,
+	}
+	t1 := time.Now()
+	response, err := netClient.Get(u.String())
+	dur := time.Since(t1)
+	if err != nil {
+		logrus.Error(err)
+		return nil, &dur, err
+	}
+	return &response.StatusCode, &dur, nil
 }

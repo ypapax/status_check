@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 set -ex
 
+projectDir=$GOPATH/src/github.com/ypapax/status_check
+
 build(){
-	cd $GOPATH/src/github.com/ypapax/status_check/apps/status_check
+	cd $projectDir/apps/status_check
 	go install
 }
 
 run(){
 	build
-	status_check --database psql
+	cd $projectDir
+	status_check -conf local.conf.yaml
 }
 
 runc(){

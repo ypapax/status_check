@@ -10,5 +10,7 @@ services:
   postgres:
     image: postgres
     container_name: postgres-status-check
+    ports:
+      - 5432:5432/tcp
     volumes:
       - ./database/psql/init.sql:/docker-entrypoint-initdb.d/init.sql
