@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const durKey = "dur"
+const durKey = "dur_ms"
 
 type Handler interface {
 	AvailableServices(w http.ResponseWriter, r *http.Request)
