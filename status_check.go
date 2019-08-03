@@ -103,6 +103,7 @@ func Serve(conf Config) error {
 					defer func() {
 						go func() {
 							logrus.Tracef("about to write job %+v to jobs chan", j)
+							time.Sleep(conf.CheckPeriod)
 							jobs <- j
 							logrus.Tracef("have written job %+v to jobs chan", j)
 						}()
