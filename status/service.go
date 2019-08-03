@@ -29,7 +29,7 @@ func (s *statusService) AvailableServices(from, to time.Time) (int, error) {
 }
 
 func (s *statusService) NotAvailableServices(from, to time.Time) (int, error) {
-	return s.repo.AvailableServices(from, to)
+	return s.repo.NotAvailableServices(from, to)
 }
 
 func (s *statusService) ServicesWithResponseFasterThan(dur time.Duration, from, to time.Time) (int, error) {

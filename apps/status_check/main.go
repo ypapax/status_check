@@ -9,7 +9,7 @@ import (
 
 func main() {
 	logrus.SetReportCaller(true)
-	logrus.SetLevel(logrus.InfoLevel)
+	logrus.SetLevel(logrus.TraceLevel)
 	var confPath string
 	flag.StringVar(&confPath, "conf", "conf.yaml", "path to config file")
 	flag.Parse()

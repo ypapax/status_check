@@ -80,6 +80,7 @@ func (r *statusRepository) allServicesWithAnyStatus(from, to time.Time) (int, er
 		logrus.Error(err)
 		return 0, err
 	}
+	logrus.Tracef("count all services: %+v for query %+v with args %+v", count, query, from, to)
 	return count, nil
 }
 
@@ -97,6 +98,7 @@ func (r *statusRepository) NotAvailableServices(from, to time.Time) (int, error)
 		logrus.Error(err)
 		return 0, err
 	}
+	logrus.Tracef("count not avail: %+v for query %+v with args %+v", count, query, from, to)
 	return count, nil
 }
 

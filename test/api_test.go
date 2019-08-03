@@ -10,7 +10,6 @@ import (
 )
 
 func TestApi(t *testing.T) {
-	as := assert.New(t)
 	from := time.Now().Add(-2 * time.Minute)
 	to := time.Now().Add(-time.Minute)
 
@@ -23,6 +22,7 @@ func TestApi(t *testing.T) {
 	}
 	for _, p := range paths {
 		t.Run(p, func(t *testing.T) {
+			as := assert.New(t)
 			status, b, err := getPath(p)
 			t.Log("resp: ", string(b))
 			if !as.NoError(err) {
