@@ -14,16 +14,21 @@ func TestApi(t *testing.T) {
 	to := time.Now().Add(-time.Minute)
 
 	limitMS := 1000
-	paths := []string{
-		fmt.Sprintf("/services-count/available/%d/%d", from.Unix(), to.Unix()),
-		fmt.Sprintf("/services-count/not-available/%d/%d", from.Unix(), to.Unix()),
-		fmt.Sprintf("/services-count/faster/%d/%d/%d", limitMS, from.Unix(), to.Unix()),
-		fmt.Sprintf("/services-count/slower/%d/%d/%d", limitMS, from.Unix(), to.Unix()),
+
+	type testCase struct {
+		path          string
+		expectedCount int
 	}
-	for _, p := range paths {
-		t.Run(p, func(t *testing.T) {
+	cases := []testCase{
+		{path: fmt.Sprintf("/services-count/available/%d/%d", from.Unix(), to.Unix()), expectedCount: 1021},
+		{path: fmt.Sprintf("/services-count/not-available/%d/%d", from.Unix(), to.Unix()), expectedCount: 13},
+		{path: fmt.Sprintf("/services-count/faster/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 1001},
+		{path: fmt.Sprintf("/services-count/slower/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 20},
+	}
+	for _, c := range cases {
+		t.Run(c.path, func(t *testing.T) {
 			as := assert.New(t)
-			status, b, err := getPath(p)
+			status, b, err := getPath(c.path)
 			t.Log("resp: ", string(b))
 			if !as.NoError(err) {
 				return

@@ -19,8 +19,19 @@ runc(){
 	docker-compose up
 }
 
-testl(){
+test(){
 	cd test
 	go test -v
+}
+
+testYamlFile=./docker-compose-test.yml
+#test(){
+#	docker-compose -f $testYamlFile build
+#	docker-compose -f $testYamlFile up
+#}
+
+bf(){
+	docker-compose -f $testYamlFile build fake-service
+	docker-compose -f $testYamlFile up fake-service
 }
 $@

@@ -2,6 +2,7 @@ version: "3.5"
 
 services:
   app:
+    container_name: status-check
     build:
       context: ./
     ports:

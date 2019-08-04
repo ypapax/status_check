@@ -4,6 +4,6 @@ COPY . /status_check/
 
 WORKDIR /status_check/apps/status_check
 RUN go install
-WORKDIR /status_check
+WORKDIR /status_check -conf $CONF
 RUN chmod +x /status_check/entrypoint.sh
 ENTRYPOINT "/status_check/entrypoint.sh"
