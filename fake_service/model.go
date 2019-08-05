@@ -61,7 +61,7 @@ func serverOnPort(port int, statusCodes []int, delayMS []int) error {
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if len(delayMS) > 0 {
 			sleepDur := time.Duration(delayQueue.Next()) * time.Millisecond
-			logrus.Tracef("sleeping for %s", delayMS)
+			logrus.Tracef("sleeping for %s", sleepDur)
 			time.Sleep(sleepDur)
 		}
 		w.WriteHeader(statusQueue.Next())
