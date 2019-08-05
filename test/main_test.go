@@ -63,7 +63,7 @@ func launchContainers(statusCheckConf status_check.Config) (func() error, error)
 		logrus.Error(err)
 		return nil, err
 	}
-	runCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "up", "-d")
+	runCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "up", "-d", "--force-recreate")
 	logrus.Tracef("running: %+v", strings.Join(runCompose.Args, " "))
 	runCompose.Stderr = os.Stderr
 	runCompose.Stdout = os.Stdout
@@ -81,10 +81,6 @@ func launchContainers(statusCheckConf status_check.Config) (func() error, error)
 		}
 		break
 	}
-	sl := time.Duration(waitBeforeRunningTestsSeconds) * time.Second
-	logrus.Infof("waiting %s before running tests", sl)
-	time.Sleep(sl)
-
 	return func() error {
 		downCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "down")
 		logrus.Tracef("running: %+v", strings.Join(downCompose.Args, " "))
