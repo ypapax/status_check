@@ -102,7 +102,16 @@ func TestMain(m *testing.M) {
 	sl := time.Duration(waitBeforeRunningTestsSeconds) * time.Second
 	logrus.Infof("waiting %s before running tests", sl)
 	time.Sleep(sl)
-	os.Exit(m.Run())
+	ret := m.Run()
+	/*downCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "down")
+	logrus.Tracef("running: %+v", strings.Join(downCompose.Args, " "))
+	downCompose.Stderr = os.Stderr
+	downCompose.Stdout = os.Stdout
+	if err := downCompose.Run(); err != nil {
+		logrus.Error(err)
+		os.Exit(1)
+	}*/
+	os.Exit(ret)
 }
 
 func getPath(path string) (int, []byte, error) {
