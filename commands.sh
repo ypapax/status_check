@@ -20,7 +20,9 @@ runc(){
 }
 
 test(){
-	cd test
+  cd queue
+  go test -v
+	cd ../test
 	go test -v
 }
 

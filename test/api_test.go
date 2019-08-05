@@ -37,7 +37,7 @@ func TestApi(t *testing.T) {
 	}
 
 	cases := []testCase{
-		{
+		/*{
 			name:     "simple",
 			workTime: 20 * time.Second,
 			paths: []pathAndExpected{
@@ -60,6 +60,30 @@ func TestApi(t *testing.T) {
 					{From: 3001, To: 3001, StatusCodes: []int{502}},
 				},
 			},
+		},*/
+		{
+			name:     "diff_status",
+			workTime: 20 * time.Second,
+			paths: []pathAndExpected{
+				{path: fmt.Sprintf("/services-count/available/%d/%d", from.Unix(), to.Unix()), expectedCount: 1},
+				{path: fmt.Sprintf("/services-count/not-available/%d/%d", from.Unix(), to.Unix()), expectedCount: 1},
+				{path: fmt.Sprintf("/services-count/faster/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 2},
+				{path: fmt.Sprintf("/services-count/slower/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 0},
+			},
+			statusCheckConf: status_check.Config{
+				Bind:             "0.0.0.0:3001",
+				CheckPeriod:      5 * time.Second,
+				DbType:           "psql",
+				ConnectionString: "postgresql://postgres@postgres/status_check?sslmode=disable",
+				Workers:          100,
+				Schemas:          []string{"https", "http"},
+			},
+			fakeServiceConf: fake_service.Config{
+				Ports: []fake_service.Port{
+					{From: 2001, To: 2001, StatusCodes: []int{200}},
+					{From: 3001, To: 3001, StatusCodes: []int{200, 502}},
+				},
+			},
 		},
 		{
 			name:     "big",
@@ -78,16 +102,17 @@ func TestApi(t *testing.T) {
 				Workers:          100,
 				Schemas:          []string{"https", "http"},
 			},
-			fakeServiceConf: fake_service.Config{Ports: []fake_service.Port{
-				{From: 2001, To: 3000, StatusCodes: []int{200}, DelayMS: []int{500}},
-				{From: 8001, To: 8010, StatusCodes: []int{200}, DelayMS: []int{1100}},
-				{From: 9001, To: 9010, StatusCodes: []int{200}, DelayMS: []int{1100, 500}},
-				{From: 7001, To: 7010, StatusCodes: []int{200, 502}, DelayMS: []int{200, 502}},
-				{From: 3001, To: 3001, StatusCodes: []int{501}},
-				{From: 4001, To: 4001, StatusCodes: []int{502}},
-				{From: 5001, To: 5001, StatusCodes: []int{503}},
-				{From: 6001, To: 6001, StatusCodes: []int{504}},
-			},
+			fakeServiceConf: fake_service.Config{
+				Ports: []fake_service.Port{
+					{From: 2001, To: 3000, StatusCodes: []int{200}, DelayMS: []int{500}},
+					{From: 8001, To: 8010, StatusCodes: []int{200}, DelayMS: []int{1100}},
+					{From: 9001, To: 9010, StatusCodes: []int{200}, DelayMS: []int{1100, 500}},
+					{From: 7001, To: 7010, StatusCodes: []int{200, 502}, DelayMS: []int{200, 502}},
+					{From: 3001, To: 3001, StatusCodes: []int{501}},
+					{From: 4001, To: 4001, StatusCodes: []int{502}},
+					{From: 5001, To: 5001, StatusCodes: []int{503}},
+					{From: 6001, To: 6001, StatusCodes: []int{504}},
+				},
 			},
 		},
 	}

@@ -2,16 +2,13 @@ package main
 
 import (
 	"flag"
-	"math/rand"
 	"os"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/ypapax/status_check/fake_service"
 )
 
 func main() {
-	rand.Seed(time.Now().Unix())
 	logrus.SetReportCaller(true)
 	logrus.SetLevel(logrus.InfoLevel)
 	var confPath string

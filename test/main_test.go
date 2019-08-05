@@ -71,18 +71,19 @@ func launchContainers(statusCheckConf status_check.Config) (func() error, error)
 		return nil, err
 	}
 
-	runStatusCheckCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "up", "-d", "--force-recreate", "status-check")
-	logrus.Tracef("running: %+v", strings.Join(runStatusCheckCompose.Args, " "))
-	runStatusCheckCompose.Stderr = os.Stderr
-	runStatusCheckCompose.Stdout = os.Stdout
-	if err := runStatusCheckCompose.Run(); err != nil {
-		logrus.Error(err)
-		return nil, err
-	}
 	for {
 		_, err := http.Get(serviceAddr)
 		if err != nil {
-			w := 10 * time.Second
+			runStatusCheckCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "up", "-d", "status-check")
+			logrus.Tracef("running: %+v", strings.Join(runStatusCheckCompose.Args, " "))
+			runStatusCheckCompose.Stderr = os.Stderr
+			runStatusCheckCompose.Stdout = os.Stdout
+			if err := runStatusCheckCompose.Run(); err != nil {
+				logrus.Error(err)
+				return nil, err
+			}
+
+			w := 20 * time.Second
 			logrus.Infof("waiting for %+v, sleeping for %s", serviceAddr, w)
 			time.Sleep(w)
 			continue

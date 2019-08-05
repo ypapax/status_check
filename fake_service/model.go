@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/ypapax/status_check/queue"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -55,22 +56,15 @@ func Serve(config *Config) error {
 
 func serverOnPort(port int, statusCodes []int, delayMS []int) error {
 	router := mux.NewRouter().StrictSlash(true)
+	var statusQueue = queue.New(statusCodes)
+	var delayQueue = queue.New(delayMS)
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if len(delayMS) > 0 {
-			var delay int
-			if len(delayMS) == 0 {
-				delay = delayMS[0]
-			} else {
-				delay = rand.Intn(len(delayMS))
-			}
-			sleepDur := time.Duration(delay) * time.Millisecond
+			sleepDur := time.Duration(delayQueue.Next()) * time.Millisecond
 			logrus.Tracef("sleeping for %s", delayMS)
 			time.Sleep(sleepDur)
 		}
-		if len(statusCodes) == 1 {
-			w.WriteHeader(statusCodes[0])
-		}
-		w.WriteHeader(rand.Intn(len(statusCodes)))
+		w.WriteHeader(statusQueue.Next())
 		if _, err := w.Write([]byte(fmt.Sprintf("%+v", statusCodes))); err != nil {
 			logrus.Error(err)
 		}
