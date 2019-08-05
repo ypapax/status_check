@@ -52,10 +52,10 @@ func TestMain(m *testing.M) {
 
 	var statusCheckConf = status_check.Config{
 		Bind:             "0.0.0.0:3001",
-		CheckPeriod:      10 * time.Second,
+		CheckPeriod:      5 * time.Second,
 		DbType:           "psql",
 		ConnectionString: "postgresql://postgres@postgres/status_check?sslmode=disable",
-		Workers:          3,
+		Workers:          100,
 		Schemas:          []string{"https", "http"},
 		Addresses:        fakeAddrs,
 	}
@@ -92,7 +92,7 @@ func TestMain(m *testing.M) {
 	for {
 		_, err := http.Get(serviceAddr)
 		if err != nil {
-			w := time.Second
+			w := 10 * time.Second
 			logrus.Infof("waiting for %+v, sleeping for %s", serviceAddr, w)
 			time.Sleep(w)
 			continue
