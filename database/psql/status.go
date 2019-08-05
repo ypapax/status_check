@@ -67,7 +67,7 @@ func (r *statusRepository) AvailableServices(from, to time.Time) (int, error) {
 }
 
 func (r *statusRepository) allServicesWithAnyStatus(from, to time.Time) (int, error) {
-	query := `SELECT COUNT(DISTINCT id) FROM status WHERE created >= $1 AND created <= $2`
+	query := `SELECT COUNT(DISTINCT service_id) FROM status WHERE created >= $1 AND created <= $2`
 	var count = -1
 	scan := func(rows *sql.Rows) error {
 		if err := rows.Scan(&count); err != nil {
@@ -85,7 +85,7 @@ func (r *statusRepository) allServicesWithAnyStatus(from, to time.Time) (int, er
 }
 
 func (r *statusRepository) NotAvailableServices(from, to time.Time) (int, error) {
-	query := `SELECT COUNT(DISTINCT id) FROM status WHERE created >= $1 AND created <= $2 AND available = false`
+	query := `SELECT COUNT(DISTINCT service_id) FROM status WHERE created >= $1 AND created <= $2 AND available = false`
 	var count = -1
 	scan := func(rows *sql.Rows) error {
 		if err := rows.Scan(&count); err != nil {
@@ -118,7 +118,7 @@ func (r *statusRepository) ServicesWithResponseFasterThan(dur time.Duration, fro
 }
 
 func (r *statusRepository) ServicesWithResponseSlowerThan(dur time.Duration, from, to time.Time) (int, error) {
-	query := `SELECT COUNT(DISTINCT id) FROM status WHERE created >= $1 AND created <= $2 AND available = true AND response_ms > $3`
+	query := `SELECT COUNT(DISTINCT service_id) FROM status WHERE created >= $1 AND created <= $2 AND available = true AND response_ms > $3`
 	var count = -1
 	scan := func(rows *sql.Rows) error {
 		if err := rows.Scan(&count); err != nil {
