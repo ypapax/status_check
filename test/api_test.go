@@ -36,12 +36,12 @@ func TestApi(t *testing.T) {
 			if !as.Equal(http.StatusOK, status) {
 				return
 			}
-			c, err := getCount(b)
+			count, err := getCount(b)
 			if !as.NoError(err) {
 				return
 			}
 			t.Log("count: ", c)
-			if as.True(c > 0, "count is zero") {
+			if as.Equal(c.expectedCount, count) {
 				return
 			}
 		})
