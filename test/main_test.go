@@ -54,7 +54,6 @@ func launchContainers(statusCheckConf status_check.Config) (func() error, error)
 		logrus.Error(err)
 		return nil, err
 	}
-
 	buildCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "build")
 	logrus.Tracef("running: %+v", strings.Join(buildCompose.Args, " "))
 	buildCompose.Stderr = os.Stderr

@@ -61,8 +61,8 @@ func TestApi(t *testing.T) {
 				},
 			},
 		},
-		/*{
-			name: "big",
+		{
+			name:     "big",
 			workTime: 60 * time.Second,
 			paths: []pathAndExpected{
 				{path: fmt.Sprintf("/services-count/available/%d/%d", from.Unix(), to.Unix()), expectedCount: 1021},
@@ -82,14 +82,14 @@ func TestApi(t *testing.T) {
 				{From: 2001, To: 3000, StatusCodes: []int{200}, DelayMS: []int{500}},
 				{From: 8001, To: 8010, StatusCodes: []int{200}, DelayMS: []int{1100}},
 				{From: 9001, To: 9010, StatusCodes: []int{200}, DelayMS: []int{1100, 500}},
-				{From: 7001, To: 7010, StatusCodes: []int{200}, DelayMS: []int{200, 502}},
+				{From: 7001, To: 7010, StatusCodes: []int{200, 502}, DelayMS: []int{200, 502}},
 				{From: 3001, To: 3001, StatusCodes: []int{501}},
 				{From: 4001, To: 4001, StatusCodes: []int{502}},
 				{From: 5001, To: 5001, StatusCodes: []int{503}},
 				{From: 6001, To: 6001, StatusCodes: []int{504}},
 			},
 			},
-		},*/
+		},
 	}
 
 	for _, c := range cases {
