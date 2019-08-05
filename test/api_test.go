@@ -37,7 +37,7 @@ func TestApi(t *testing.T) {
 	}
 
 	cases := []testCase{
-		/*{
+		{
 			name:     "simple",
 			workTime: 20 * time.Second,
 			paths: []pathAndExpected{
@@ -60,7 +60,7 @@ func TestApi(t *testing.T) {
 					{From: 3001, To: 3001, StatusCodes: []int{502}},
 				},
 			},
-		},*/
+		},
 		{
 			name:     "diff_status",
 			workTime: 20 * time.Second,
@@ -91,15 +91,15 @@ func TestApi(t *testing.T) {
 			paths: []pathAndExpected{
 				{path: fmt.Sprintf("/services-count/available/%d/%d", from.Unix(), to.Unix()), expectedCount: 1021},
 				{path: fmt.Sprintf("/services-count/not-available/%d/%d", from.Unix(), to.Unix()), expectedCount: 13},
-				{path: fmt.Sprintf("/services-count/faster/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 1001},
+				{path: fmt.Sprintf("/services-count/faster/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 1014},
 				{path: fmt.Sprintf("/services-count/slower/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 20},
 			},
 			statusCheckConf: status_check.Config{
 				Bind:             "0.0.0.0:3001",
-				CheckPeriod:      5 * time.Second,
+				CheckPeriod:      20 * time.Second,
 				DbType:           "psql",
 				ConnectionString: "postgresql://postgres@postgres/status_check?sslmode=disable",
-				Workers:          100,
+				Workers:          200,
 				Schemas:          []string{"https", "http"},
 			},
 			fakeServiceConf: fake_service.Config{
