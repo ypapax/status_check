@@ -71,6 +71,15 @@ func launchContainers(statusCheckConf status_check.Config) (func() error, error)
 		logrus.Error(err)
 		return nil, err
 	}
+
+	runStatusCheckCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "up", "-d", "--force-recreate", "status-check")
+	logrus.Tracef("running: %+v", strings.Join(runStatusCheckCompose.Args, " "))
+	runStatusCheckCompose.Stderr = os.Stderr
+	runStatusCheckCompose.Stdout = os.Stdout
+	if err := runStatusCheckCompose.Run(); err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
 	for {
 		_, err := http.Get(serviceAddr)
 		if err != nil {
@@ -82,7 +91,7 @@ func launchContainers(statusCheckConf status_check.Config) (func() error, error)
 		break
 	}
 	return func() error {
-		downCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "down")
+		downCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "down", "-v")
 		logrus.Tracef("running: %+v", strings.Join(downCompose.Args, " "))
 		downCompose.Stderr = os.Stderr
 		downCompose.Stdout = os.Stdout

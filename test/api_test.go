@@ -63,6 +63,7 @@ func TestApi(t *testing.T) {
 		},
 		/*{
 			name: "big",
+			workTime: 60 * time.Second,
 			paths: []pathAndExpected{
 				{path: fmt.Sprintf("/services-count/available/%d/%d", from.Unix(), to.Unix()), expectedCount: 1021},
 				{path: fmt.Sprintf("/services-count/not-available/%d/%d", from.Unix(), to.Unix()), expectedCount: 13},
@@ -103,14 +104,15 @@ func TestApi(t *testing.T) {
 				logrus.Error(err)
 			}
 
-			if _, err := launchContainers(c.statusCheckConf); err != nil {
+			stopContainers, err := launchContainers(c.statusCheckConf)
+			if err != nil {
 				logrus.Error(err)
 			}
-			/*defer func() {
+			defer func() {
 				if err := stopContainers(); err != nil {
 					logrus.Error(err)
 				}
-			}()*/
+			}()
 			logrus.Infof("waiting %s before running tests", c.workTime)
 			time.Sleep(c.workTime)
 			for _, p := range c.paths {
