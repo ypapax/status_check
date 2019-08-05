@@ -32,45 +32,27 @@ func TestMain(m *testing.M) {
 	logrus.SetReportCaller(true)
 	logrus.SetLevel(logrus.TraceLevel)
 	flag.StringVar(&serviceAddr, "service-addr", "http://localhost:3001", "address of status_check web service")
-	flag.StringVar(&fakeServicesConfFile, "fake-services-conf", "../fake-services.conf.yaml", "fake service config file path")
 	flag.StringVar(&dockerComposeConfigFile, "docker-compose", "../docker-compose-test.yml", "docker compose config file")
 	flag.StringVar(&fakeServicesContainerName, "fake-container", "fake-services", "fake services container name")
 	flag.IntVar(&waitBeforeRunningTestsSeconds, "wait-secs", 60, "amount of seconds to wait when status_check service collects enough stats before running tests")
 	flag.Parse()
-	f, err := os.Open(fakeServicesConfFile)
-	if err != nil {
-		err := fmt.Errorf("error: %+v for file '%+v'", err, fakeServicesConfFile)
-		logrus.Error(err)
-		os.Exit(1)
-	}
-	fakeConf, err := fake_service.ParseConf(f)
-	if err != nil {
-		logrus.Error(err)
-		os.Exit(1)
-	}
-	fakeAddrs := allFakeServicesAddr(fakeServicesContainerName, *fakeConf)
 
-	var statusCheckConf = status_check.Config{
-		Bind:             "0.0.0.0:3001",
-		CheckPeriod:      5 * time.Second,
-		DbType:           "psql",
-		ConnectionString: "postgresql://postgres@postgres/status_check?sslmode=disable",
-		Workers:          100,
-		Schemas:          []string{"https", "http"},
-		Addresses:        fakeAddrs,
-	}
+	ret := m.Run()
+	os.Exit(ret)
+}
 
+func launchContainers(statusCheckConf status_check.Config) (func() error, error) {
 	b, err := yaml.Marshal(statusCheckConf)
 	if err != nil {
 		logrus.Error(err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	statusCheckConfFile := "./status_check.test.conf.yaml"
 	logrus.Tracef("writing file %+v", statusCheckConfFile)
 	if err := ioutil.WriteFile(statusCheckConfFile, b, 0777); err != nil {
 		logrus.Error(err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	buildCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "build")
@@ -79,7 +61,7 @@ func TestMain(m *testing.M) {
 	buildCompose.Stdout = os.Stdout
 	if err := buildCompose.Run(); err != nil {
 		logrus.Error(err)
-		os.Exit(1)
+		return nil, err
 	}
 	runCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "up", "-d")
 	logrus.Tracef("running: %+v", strings.Join(runCompose.Args, " "))
@@ -87,7 +69,7 @@ func TestMain(m *testing.M) {
 	runCompose.Stdout = os.Stdout
 	if err := runCompose.Run(); err != nil {
 		logrus.Error(err)
-		os.Exit(1)
+		return nil, err
 	}
 	for {
 		_, err := http.Get(serviceAddr)
@@ -102,16 +84,18 @@ func TestMain(m *testing.M) {
 	sl := time.Duration(waitBeforeRunningTestsSeconds) * time.Second
 	logrus.Infof("waiting %s before running tests", sl)
 	time.Sleep(sl)
-	ret := m.Run()
-	/*downCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "down")
-	logrus.Tracef("running: %+v", strings.Join(downCompose.Args, " "))
-	downCompose.Stderr = os.Stderr
-	downCompose.Stdout = os.Stdout
-	if err := downCompose.Run(); err != nil {
-		logrus.Error(err)
-		os.Exit(1)
-	}*/
-	os.Exit(ret)
+
+	return func() error {
+		downCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "down")
+		logrus.Tracef("running: %+v", strings.Join(downCompose.Args, " "))
+		downCompose.Stderr = os.Stderr
+		downCompose.Stdout = os.Stdout
+		if err := downCompose.Run(); err != nil {
+			logrus.Error(err)
+			return err
+		}
+		return nil
+	}, nil
 }
 
 func getPath(path string) (int, []byte, error) {

@@ -15,7 +15,7 @@ func main() {
 	logrus.SetReportCaller(true)
 	logrus.SetLevel(logrus.InfoLevel)
 	var confPath string
-	flag.StringVar(&confPath, "conf", "fake-services.conf.yaml", "path to a config file")
+	flag.StringVar(&confPath, "conf", "fake-services.test.conf.yaml", "path to a config file")
 	flag.Parse()
 	f, err := os.Open(confPath)
 	if err != nil {
