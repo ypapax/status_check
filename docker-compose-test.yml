@@ -12,7 +12,6 @@ services:
     command: bash /go/src/entrypoint.sh
     depends_on:
       - postgres
-      - fake-service
   fake-service:
     container_name: fake-services
     build:
