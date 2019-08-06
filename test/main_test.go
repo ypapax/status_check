@@ -81,7 +81,7 @@ func launchContainers(statusCheckConf status_check.Config) (func() error, error)
 				return nil, err
 			}
 
-			w := 20 * time.Second
+			w := 5 * time.Second
 			logrus.Infof("waiting for %+v, sleeping for %s", serviceAddr, w)
 			time.Sleep(w)
 			continue
