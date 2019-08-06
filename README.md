@@ -1,4 +1,4 @@
-This is a service for monitoring an availability of a particular set of services.
+This is a service for monitoring availability of a particular set of services.
 This is an example of a service list:
 - google.com
 - youtube.com
