@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ypapax/jsn"
-
 	"github.com/ypapax/status_check/status"
 
 	_ "github.com/lib/pq"
@@ -40,7 +38,7 @@ func (r *statusRepository) Create(statuses []status.Status) error {
 	query := fmt.Sprintf(`INSERT INTO status(available, created, response_ms, service_id) VALUES %s`, strings.Join(argsNumbers, ", "))
 	result, err := r.db.Exec(query, args...)
 	if err != nil {
-		err := fmt.Errorf("error: %+v for query %+v, argNumbers: %+v", err, query, jsn.B(argsNumbers))
+		err := fmt.Errorf("error: %+v for query %+v, argNumbers: %+v", err, query, argsNumbers)
 		logrus.Error(err)
 		return err
 	}
@@ -49,7 +47,7 @@ func (r *statusRepository) Create(statuses []status.Status) error {
 		logrus.Error(err)
 		return err
 	}
-	logrus.Printf("inserted %+v rows into status table, query: %+v, args: %+v", rows, query, jsn.B(args))
+	logrus.Printf("inserted %+v rows into status table, query: %+v, args: %+v", rows, query, args)
 	return nil
 }
 func (r *statusRepository) AvailableServices(from, to time.Time) (int, error) {

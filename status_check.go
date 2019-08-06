@@ -9,8 +9,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/ypapax/jsn"
-
 	"github.com/sirupsen/logrus"
 	"github.com/ypapax/status_check/database/psql"
 	"github.com/ypapax/status_check/job"
@@ -66,7 +64,7 @@ func Serve(conf Config) error {
 		return err
 	}
 
-	logrus.Println("services ", len(ss), jsn.B(ss))
+	logrus.Println("services ", len(ss))
 
 	var sts statuses.Statuses
 	go func() {

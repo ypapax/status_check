@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ypapax/jsn"
-
 	"github.com/sirupsen/logrus"
 	"github.com/ypapax/status_check/status"
 )
@@ -44,7 +42,7 @@ func (s *webServiceService) FindAllWebServices() ([]WebService, error) {
 }
 
 func (s *webServiceService) CheckStatus(service *WebService, schemes []string) (*status.Status, error) {
-	logrus.Println("checking status for web service ", jsn.B(service), " with schemes ", schemes)
+	logrus.Println("checking status for web service ", service, " with schemes ", schemes)
 	if len(schemes) == 0 {
 		err := fmt.Errorf("missing schemes")
 		logrus.Error(err)
