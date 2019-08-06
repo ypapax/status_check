@@ -1,7 +1,7 @@
 bind: 0.0.0.0:3000
 check_period: 1m
 db_type: psql
-connection_string: postgresql://postgres@postgres/status_check?sslmode=disable
+connection_string: postgresql://postgres@postgres-test/status_check?sslmode=disable
 workers: 3
 schemas:
   - https

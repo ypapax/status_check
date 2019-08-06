@@ -11,14 +11,14 @@ services:
       - CONF=/status_check/test/status_check.test.conf.yaml
     command: bash /go/src/entrypoint.sh
     depends_on:
-      - postgres
+      - postgres-test
   fake-service:
     container_name: fake-services
     build:
       context: .
       dockerfile: fake_service/Dockerfile
     command: bash /go/src/entrypoint.sh
-  postgres:
+  postgres-test:
     image: postgres
     container_name: test-postgres-status-check
     ports:
