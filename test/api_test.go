@@ -143,7 +143,7 @@ func TestApi(t *testing.T) {
 			for _, p := range c.paths {
 				t.Run(c.name+p.path, func(t *testing.T) {
 					as := assert.New(t)
-					status, b, err := getPath(p.path)
+					status, b, err := getPath(p.path, t)
 					t.Log("resp: ", string(b))
 					if !as.NoError(err) {
 						return

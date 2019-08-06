@@ -101,9 +101,9 @@ func launchContainers(statusCheckConf status_check.Config) (func() error, error)
 	}, nil
 }
 
-func getPath(path string) (int, []byte, error) {
+func getPath(path string, t *testing.T) (int, []byte, error) {
 	u := serviceAddr + path
-	logrus.Println("requesting ", u)
+	t.Log("requesting ", u)
 	var netClient = &http.Client{
 		Timeout: reqTimeout,
 	}

@@ -28,31 +28,43 @@ Amount of available services with a response time less than 1 second for a given
 `./commands.sh test`
 
 ```
---- PASS: TestApi (372.16s)
-    --- PASS: TestApi/simple/services-count/available/1565031305/1565038505 (0.00s)
+--- PASS: TestApi (298.97s)
+    --- PASS: TestApi/simple/services-count/available/1565073066/1565080266 (0.01s)
+        main_test.go:106: requesting  http://localhost:3001/services-count/available/1565073066/1565080266
         api_test.go:147: resp:  {"Count": 1}
-    --- PASS: TestApi/simple/services-count/not-available/1565031305/1565038505 (0.00s)
+    --- PASS: TestApi/simple/services-count/not-available/1565073066/1565080266 (0.00s)
+        main_test.go:106: requesting  http://localhost:3001/services-count/not-available/1565073066/1565080266
         api_test.go:147: resp:  {"Count": 1}
-    --- PASS: TestApi/simple/services-count/faster/1000/1565031305/1565038505 (0.00s)
+    --- PASS: TestApi/simple/services-count/faster/1000/1565073066/1565080266 (0.00s)
+        main_test.go:106: requesting  http://localhost:3001/services-count/faster/1000/1565073066/1565080266
         api_test.go:147: resp:  {"Count": 2}
-    --- PASS: TestApi/simple/services-count/slower/1000/1565031305/1565038505 (0.00s)
+    --- PASS: TestApi/simple/services-count/slower/1000/1565073066/1565080266 (0.00s)
+        main_test.go:106: requesting  http://localhost:3001/services-count/slower/1000/1565073066/1565080266
         api_test.go:147: resp:  {"Count": 0}
-    --- PASS: TestApi/diff_status/services-count/available/1565031305/1565038505 (0.01s)
+    --- PASS: TestApi/diff_status/services-count/available/1565073066/1565080266 (0.01s)
+        main_test.go:106: requesting  http://localhost:3001/services-count/available/1565073066/1565080266
         api_test.go:147: resp:  {"Count": 1}
-    --- PASS: TestApi/diff_status/services-count/not-available/1565031305/1565038505 (0.00s)
+    --- PASS: TestApi/diff_status/services-count/not-available/1565073066/1565080266 (0.00s)
+        main_test.go:106: requesting  http://localhost:3001/services-count/not-available/1565073066/1565080266
         api_test.go:147: resp:  {"Count": 1}
-    --- PASS: TestApi/diff_status/services-count/faster/1000/1565031305/1565038505 (0.00s)
+    --- PASS: TestApi/diff_status/services-count/faster/1000/1565073066/1565080266 (0.00s)
+        main_test.go:106: requesting  http://localhost:3001/services-count/faster/1000/1565073066/1565080266
         api_test.go:147: resp:  {"Count": 2}
-    --- PASS: TestApi/diff_status/services-count/slower/1000/1565031305/1565038505 (0.00s)
+    --- PASS: TestApi/diff_status/services-count/slower/1000/1565073066/1565080266 (0.00s)
+        main_test.go:106: requesting  http://localhost:3001/services-count/slower/1000/1565073066/1565080266
         api_test.go:147: resp:  {"Count": 0}
-    --- PASS: TestApi/big/services-count/available/1565031305/1565038505 (0.01s)
+    --- PASS: TestApi/big/services-count/available/1565073066/1565080266 (0.01s)
+        main_test.go:106: requesting  http://localhost:3001/services-count/available/1565073066/1565080266
         api_test.go:147: resp:  {"Count": 1021}
-    --- PASS: TestApi/big/services-count/not-available/1565031305/1565038505 (0.00s)
+    --- PASS: TestApi/big/services-count/not-available/1565073066/1565080266 (0.00s)
+        main_test.go:106: requesting  http://localhost:3001/services-count/not-available/1565073066/1565080266
         api_test.go:147: resp:  {"Count": 13}
-    --- PASS: TestApi/big/services-count/faster/1000/1565031305/1565038505 (0.00s)
+    --- PASS: TestApi/big/services-count/faster/1000/1565073066/1565080266 (0.00s)
+        main_test.go:106: requesting  http://localhost:3001/services-count/faster/1000/1565073066/1565080266
         api_test.go:147: resp:  {"Count": 1014}
-    --- PASS: TestApi/big/services-count/slower/1000/1565031305/1565038505 (0.00s)
+    --- PASS: TestApi/big/services-count/slower/1000/1565073066/1565080266 (0.00s)
+        main_test.go:106: requesting  http://localhost:3001/services-count/slower/1000/1565073066/1565080266
         api_test.go:147: resp:  {"Count": 20}
 PASS
-ok  	github.com/ypapax/status_check/test	372.170s
+ok  	github.com/ypapax/status_check/test	298.979s
 ```
