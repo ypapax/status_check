@@ -7,6 +7,8 @@ services:
       context: ./
     ports:
       - 3000:3000/tcp
+    environment:
+      - CONF=/status_check/conf.yaml
     command: bash /go/src/entrypoint.sh
   postgres:
     image: postgres
