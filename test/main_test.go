@@ -24,7 +24,6 @@ var serviceAddr string
 var fakeServicesConfFile string
 var fakeServicesContainerName string
 var dockerComposeConfigFile string
-var waitBeforeRunningTestsSeconds int
 
 const reqTimeout = 3 * time.Second
 
@@ -34,7 +33,6 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&serviceAddr, "service-addr", "http://localhost:3001", "address of status_check web service")
 	flag.StringVar(&dockerComposeConfigFile, "docker-compose", "../docker-compose-test.yml", "docker compose config file")
 	flag.StringVar(&fakeServicesContainerName, "fake-container", "fake-services", "fake services container name")
-	flag.IntVar(&waitBeforeRunningTestsSeconds, "wait-secs", 60, "amount of seconds to wait when status_check service collects enough stats before running tests")
 	flag.Parse()
 
 	ret := m.Run()
