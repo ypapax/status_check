@@ -30,26 +30,14 @@ type Config struct {
 	Addresses        []string      `yaml:"addresses"`
 }
 
-func Serve(conf Config) error {
+func CheckServices(conf Config) error {
 	if err := validateConf(conf); err != nil {
 		return err
 	}
-	var webServicesService web_service.Service
-	var statusService status.Service
-	switch conf.DbType {
-	case "psql":
-		db, err := psql.GetConnection(conf.ConnectionString)
-		if err != nil {
-			logrus.Error(err)
-			return err
-		}
-		defer db.Close()
-		serviceRepo := psql.NewPostgresServiceRepository(db)
-		statusRepo := psql.NewPostgresStatusRepository(db)
-		webServicesService = web_service.NewService(serviceRepo)
-		statusService = status.NewService(statusRepo)
-	default:
-		err := fmt.Errorf("db type '%+v' is not supported", conf.DbType)
+
+	webServicesService, statusService, err := services(conf)
+	if err != nil {
+		logrus.Error(err)
 		return err
 	}
 
@@ -122,7 +110,20 @@ func Serve(conf Config) error {
 			}
 		}(i)
 	}
+
+	forever := make(chan bool)
+	<-forever
+	return nil
+}
+
+func ServeAPI(conf Config) error {
+	_, statusService, err := services(conf)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
 	statusHandler := status.NewStatusHandler(statusService)
+
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/services-count/available/{from_ts}/{to_ts}", statusHandler.AvailableServices).Methods("GET")
 	router.HandleFunc("/services-count/not-available/{from_ts}/{to_ts}", statusHandler.NotAvailableServices).Methods("GET")
@@ -135,8 +136,29 @@ func Serve(conf Config) error {
 		logrus.Error(err)
 		return err
 	}
-
 	return nil
+}
+
+func services(conf Config) (web_service.Service, status.Service, error) {
+	var webServicesService web_service.Service
+	var statusService status.Service
+
+	switch conf.DbType {
+	case "psql":
+		db, err := psql.GetConnection(conf.ConnectionString, 10*time.Second)
+		if err != nil {
+			logrus.Error(err)
+			return webServicesService, statusService, err
+		}
+		serviceRepo := psql.NewPostgresServiceRepository(db)
+		statusRepo := psql.NewPostgresStatusRepository(db)
+		webServicesService = web_service.NewService(serviceRepo)
+		statusService = status.NewService(statusRepo)
+	default:
+		err := fmt.Errorf("db type '%+v' is not supported", conf.DbType)
+		return webServicesService, statusService, err
+	}
+	return webServicesService, statusService, nil
 }
 
 func ParseConf(reader io.Reader) (*Config, error) {

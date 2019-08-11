@@ -2,14 +2,15 @@ package main
 
 import (
 	"flag"
-	"github.com/sirupsen/logrus"
 	"github.com/ypapax/status_check"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	logrus.SetReportCaller(true)
-	logrus.SetLevel(logrus.InfoLevel)
+	logrus.SetLevel(logrus.TraceLevel)
 	var confPath string
 	flag.StringVar(&confPath, "conf", "conf.yaml", "path to config file")
 	flag.Parse()
@@ -23,9 +24,8 @@ func main() {
 		logrus.Error(err)
 		os.Exit(1)
 	}
-	if err := status_check.CheckServices(*c); err != nil {
+	if err := status_check.ServeAPI(*c); err != nil {
 		logrus.Error(err)
 		os.Exit(1)
 	}
-
 }

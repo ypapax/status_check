@@ -1,19 +1,24 @@
 version: "3.5"
 
 services:
-  app:
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - 3000:3000/tcp
+    environment:
+      - CONF=/api/conf.yaml
+  status_checker:
     container_name: status-check
     build:
       context: ./
-    ports:
-      - 3000:3000/tcp
     environment:
       - CONF=/status_check/conf.yaml
     command: bash /go/src/entrypoint.sh
   postgres:
     image: postgres
     container_name: postgres-status-check
-    ports:
-      - 5432:5432/tcp
     volumes:
       - ./database/psql/init.sql:/docker-entrypoint-initdb.d/init.sql

@@ -52,6 +52,13 @@ func launchContainers(statusCheckConf status_check.Config) (func() error, error)
 		logrus.Error(err)
 		return nil, err
 	}
+	createTestNetwork := exec.Command(`docker`, `network`, `create`, `test-network`)
+	logrus.Tracef("running: %+v", strings.Join(createTestNetwork.Args, " "))
+	createTestNetwork.Stderr = os.Stderr
+	createTestNetwork.Stdout = os.Stdout
+	if err := createTestNetwork.Run(); err != nil {
+		logrus.Warn(err)
+	}
 	buildCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "build")
 	logrus.Tracef("running: %+v", strings.Join(buildCompose.Args, " "))
 	buildCompose.Stderr = os.Stderr
@@ -60,35 +67,30 @@ func launchContainers(statusCheckConf status_check.Config) (func() error, error)
 		logrus.Error(err)
 		return nil, err
 	}
-	runCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "up", "-d", "--force-recreate")
-	logrus.Tracef("running: %+v", strings.Join(runCompose.Args, " "))
-	runCompose.Stderr = os.Stderr
-	runCompose.Stdout = os.Stdout
-	if err := runCompose.Run(); err != nil {
+	upOutFileName := fmt.Sprintf("/tmp/%d-status-check-docker-compose-up.stderr.stdout", time.Now().Unix())
+	f, err := os.Create(upOutFileName)
+	if err != nil {
 		logrus.Error(err)
 		return nil, err
 	}
-
-	for {
-		_, err := http.Get(serviceAddr)
-		if err != nil {
-			runStatusCheckCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "up", "-d", "status-check")
-			logrus.Tracef("running: %+v", strings.Join(runStatusCheckCompose.Args, " "))
-			runStatusCheckCompose.Stderr = os.Stderr
-			runStatusCheckCompose.Stdout = os.Stdout
-			if err := runStatusCheckCompose.Run(); err != nil {
-				logrus.Error(err)
-				return nil, err
-			}
-
-			w := 5 * time.Second
-			logrus.Infof("waiting for %+v, sleeping for %s", serviceAddr, w)
-			time.Sleep(w)
-			continue
+	ps := func() {
+		dockerPs := exec.Command("docker", "ps")
+		logrus.Tracef("running: %+v", strings.Join(dockerPs.Args, " "))
+		dockerPs.Stderr = os.Stderr
+		dockerPs.Stdout = os.Stdout
+		if err := dockerPs.Run(); err != nil {
+			logrus.Error(err)
 		}
-		break
 	}
-	return func() error {
+	runCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "up", "--force-recreate")
+	shutdown := func() error {
+		if runCompose.Process != nil {
+			if err := runCompose.Process.Kill(); err != nil {
+				logrus.Error(err)
+			}
+		}
+		defer f.Close()
+		ps()
 		downCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "down", "-v")
 		logrus.Tracef("running: %+v", strings.Join(downCompose.Args, " "))
 		downCompose.Stderr = os.Stderr
@@ -98,7 +100,71 @@ func launchContainers(statusCheckConf status_check.Config) (func() error, error)
 			return err
 		}
 		return nil
-	}, nil
+	}
+	outFileContent := func() string {
+		b, err := ioutil.ReadFile(upOutFileName)
+		if err != nil {
+			logrus.Error(err)
+			return err.Error()
+		}
+		return fmt.Sprintf(`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+content of the file %+v: %s\n
+\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+`, upOutFileName, string(b))
+	}
+	errChan := make(chan error)
+	go func() {
+		logrus.Tracef("running: %+v, stdout and stderr are written to %s", strings.Join(runCompose.Args, " "), upOutFileName)
+		runCompose.Stderr = f
+		runCompose.Stdout = f
+		if err := runCompose.Run(); err != nil {
+			err := fmt.Errorf("error: %+v, for command %s", err, strings.Join(runCompose.Args, " "))
+			logrus.Warn(outFileContent())
+			logrus.Error(err)
+			//errChan <- err
+			return
+		}
+	}()
+	ready := make(chan bool, 2)
+	go func() {
+		for {
+			_, err := http.Get(serviceAddr)
+			if err != nil {
+				/*runStatusCheckCompose := exec.Command(`docker-compose`, "-f", dockerComposeConfigFile, "up", "-d", "api")
+				logrus.Tracef("running: %+v", strings.Join(runStatusCheckCompose.Args, " "))
+				runStatusCheckCompose.Stderr = os.Stderr
+				runStatusCheckCompose.Stdout = os.Stdout
+				if err := runStatusCheckCompose.Run(); err != nil {
+					logrus.Error(err)
+					errChan <- err
+					return
+				}*/
+
+				w := 5 * time.Second
+				ps()
+				logrus.Infof(`waiting for %+v, sleeping for %s, %+v`, serviceAddr, w, outFileContent())
+				time.Sleep(w)
+				continue
+			}
+			ready <- true
+			break
+		}
+	}()
+	dockerComposeUpTimeout := 25 * time.Second
+	select {
+	case <-ready:
+		break
+	case err := <-errChan:
+		logrus.Error(err)
+		return shutdown, err
+	case <-time.After(dockerComposeUpTimeout):
+		err := fmt.Errorf("timeout with launching containers := %s, %s", dockerComposeUpTimeout, outFileContent())
+		logrus.Error(err)
+		return shutdown, err
+	}
+	ps()
+	return shutdown, nil
 }
 
 func getPath(path string, t *testing.T) (int, []byte, error) {

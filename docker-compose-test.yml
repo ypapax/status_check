@@ -1,16 +1,30 @@
 version: "3.5"
 
 services:
+  api:
+    container_name: api-test
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - 3001:3001/tcp
+    environment:
+      - CONF=/api/test/status_check.test.conf.yaml
+    networks:
+      - test-network
+    depends_on:
+      - postgres-test
   status-check:
     container_name: test-status-check
     build:
       context: ./
-    ports:
-      - 3001:3001/tcp
     environment:
       - CONF=/status_check/test/status_check.test.conf.yaml
     command: bash /go/src/entrypoint.sh
+    networks:
+      - test-network
     depends_on:
+      - fake-service
       - postgres-test
   fake-service:
     container_name: fake-services
@@ -18,10 +32,16 @@ services:
       context: .
       dockerfile: fake_service/Dockerfile
     command: bash /go/src/entrypoint.sh
+    networks:
+      - test-network
   postgres-test:
     image: postgres
-    container_name: test-postgres-status-check
-    ports:
-      - 5432:5432/tcp
+    container_name: test-psql-status-check
     volumes:
       - ./database/psql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - test-network
+networks:
+  test-network:
+    external:
+      name: test-network

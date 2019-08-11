@@ -36,4 +36,5 @@ bf(){
 	docker-compose -f $testYamlFile build fake-service
 	docker-compose -f $testYamlFile up fake-service
 }
-$@
+
+"$@"

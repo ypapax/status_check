@@ -3,16 +3,36 @@ package psql
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
 
-func GetConnection(database string) (*sql.DB, error) {
-	logrus.Println("Connecting to PostgreSQL DB")
+func GetConnection(database string, timeout time.Duration) (*sql.DB, error) {
+	logrus.Println("Connecting to PostgreSQL DB: ", database)
 	db, err := sql.Open("postgres", database)
 	if err != nil {
+		err := fmt.Errorf("couldn't connect to db: %+v, err: %+v", database, err)
 		logrus.Error(err)
 		return nil, err
+	}
+	done := make(chan bool)
+	go func() {
+		for {
+			if err := db.Ping(); err != nil {
+				logrus.Println("waiting for database ", database)
+				time.Sleep(2 * time.Second)
+			}
+			done <- true
+			break
+		}
+	}()
+	select {
+	case <-done:
+	case <-time.After(timeout):
+		err := fmt.Errorf("couldn't ping db %+v after timeout %s", database, timeout)
+		return nil, err
+
 	}
 	return db, nil
 }
