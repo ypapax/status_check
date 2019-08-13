@@ -17,7 +17,7 @@ run(){
 }
 
 runc(){
-	docker network create status-check-network
+	set +e; docker network create status-check-network; set -e;
 	docker-compose build
 	docker-compose up
 }
