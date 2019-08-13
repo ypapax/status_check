@@ -17,8 +17,15 @@ run(){
 }
 
 runc(){
+	docker network create status-check-network
 	docker-compose build
 	docker-compose up
+}
+
+avail(){
+  to=$(date +%s)
+  from=$((to-3600))
+  curl localhost:3000/services-count/available/$from/$to
 }
 
 test(){

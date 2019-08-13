@@ -10,6 +10,8 @@ services:
       - 3000:3000/tcp
     environment:
       - CONF=/api/conf.yaml
+    networks:
+      - status-check-network
   status_checker:
     container_name: status-check
     build:
@@ -17,8 +19,17 @@ services:
     environment:
       - CONF=/status_check/conf.yaml
     command: bash /go/src/entrypoint.sh
+    networks:
+      - status-check-network
   postgres:
     image: postgres
     container_name: postgres-status-check
     volumes:
       - ./database/psql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - status-check-network
+
+networks:
+  status-check-network:
+    external:
+      name: status-check-network
