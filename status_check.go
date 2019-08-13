@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/ypapax/status_check/config"
 
 	"github.com/sirupsen/logrus"
 	"github.com/ypapax/status_check/database/psql"
@@ -20,22 +19,12 @@ import (
 
 const writeStatusesToDbPeriod = 5 * time.Second
 
-type Config struct {
-	Bind             string        `yaml:"bind"`
-	CheckPeriod      time.Duration `yaml:"check_period"`
-	DbType           string        `yaml:"db_type"`
-	ConnectionString string        `yaml:"connection_string"`
-	Workers          int           `yaml:"workers"`
-	Schemas          []string      `yaml:"schemas"`
-	Addresses        []string      `yaml:"addresses"`
-}
-
-func CheckServices(conf Config) error {
+func CheckServices(conf config.Config) error {
 	if err := validateConf(conf); err != nil {
 		return err
 	}
 
-	webServicesService, statusService, err := services(conf)
+	webServicesService, statusService, err := Services(conf.DbType, conf.ConnectionString)
 	if err != nil {
 		logrus.Error(err)
 		return err
@@ -52,7 +41,7 @@ func CheckServices(conf Config) error {
 		return err
 	}
 
-	logrus.Println("services ", len(ss))
+	logrus.Println("Services ", len(ss))
 
 	var sts statuses.Statuses
 	go func() {
@@ -116,36 +105,13 @@ func CheckServices(conf Config) error {
 	return nil
 }
 
-func ServeAPI(conf Config) error {
-	_, statusService, err := services(conf)
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
-	statusHandler := status.NewStatusHandler(statusService)
-
-	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/services-count/available/{from_ts}/{to_ts}", statusHandler.AvailableServices).Methods("GET")
-	router.HandleFunc("/services-count/not-available/{from_ts}/{to_ts}", statusHandler.NotAvailableServices).Methods("GET")
-	router.HandleFunc("/services-count/faster/{dur_ms}/{from_ts}/{to_ts}", statusHandler.ServicesWithResponseFasterThan).Methods("GET")
-	router.HandleFunc("/services-count/slower/{dur_ms}/{from_ts}/{to_ts}", statusHandler.ServicesWithResponseSlowerThan).Methods("GET")
-	http.Handle("/", accessControl(router))
-
-	logrus.Println("Listening on  " + conf.Bind)
-	if err := http.ListenAndServe(conf.Bind, nil); err != nil {
-		logrus.Error(err)
-		return err
-	}
-	return nil
-}
-
-func services(conf Config) (web_service.Service, status.Service, error) {
+func Services(dbType, connString string) (web_service.Service, status.Service, error) {
 	var webServicesService web_service.Service
 	var statusService status.Service
 
-	switch conf.DbType {
+	switch dbType {
 	case "psql":
-		db, err := psql.GetConnection(conf.ConnectionString, 10*time.Second)
+		db, err := psql.GetConnection(connString, 10*time.Second)
 		if err != nil {
 			logrus.Error(err)
 			return webServicesService, statusService, err
@@ -155,25 +121,25 @@ func services(conf Config) (web_service.Service, status.Service, error) {
 		webServicesService = web_service.NewService(serviceRepo)
 		statusService = status.NewService(statusRepo)
 	default:
-		err := fmt.Errorf("db type '%+v' is not supported", conf.DbType)
+		err := fmt.Errorf("db type '%+v' is not supported", connString)
 		return webServicesService, statusService, err
 	}
 	return webServicesService, statusService, nil
 }
 
-func ParseConf(reader io.Reader) (*Config, error) {
+func ParseConf(reader io.Reader) (*config.Config, error) {
 	b, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return nil, err
 	}
-	var c Config
+	var c config.Config
 	if err := yaml.Unmarshal([]byte(b), &c); err != nil {
 		return nil, err
 	}
 	return &c, nil
 }
 
-func validateConf(c Config) error {
+func validateConf(c config.Config) error {
 	if len(c.Addresses) == 0 {
 		return fmt.Errorf("Missing addresses list")
 	}
@@ -199,18 +165,4 @@ func createServices(webServicesService web_service.Service, addresses []string) 
 		return err
 	}
 	return nil
-}
-
-func accessControl(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type")
-
-		if r.Method == "OPTIONS" {
-			return
-		}
-
-		h.ServeHTTP(w, r)
-	})
 }

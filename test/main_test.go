@@ -12,7 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ypapax/status_check"
+	"github.com/ypapax/status_check/config"
+
 	"gopkg.in/yaml.v2"
 
 	"github.com/ypapax/status_check/fake_service"
@@ -39,7 +40,7 @@ func TestMain(m *testing.M) {
 	os.Exit(ret)
 }
 
-func launchContainers(statusCheckConf status_check.Config) (func() error, error) {
+func launchContainers(statusCheckConf config.Config) (func() error, error) {
 	b, err := yaml.Marshal(statusCheckConf)
 	if err != nil {
 		logrus.Error(err)

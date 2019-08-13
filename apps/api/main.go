@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/ypapax/status_check"
+	"github.com/ypapax/status_check/api"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -24,7 +25,7 @@ func main() {
 		logrus.Error(err)
 		os.Exit(1)
 	}
-	if err := status_check.ServeAPI(*c); err != nil {
+	if err := api.Serve(*c); err != nil {
 		logrus.Error(err)
 		os.Exit(1)
 	}

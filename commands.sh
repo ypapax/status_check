@@ -4,6 +4,8 @@ set -ex
 projectDir=$GOPATH/src/github.com/ypapax/status_check
 
 build(){
+  cd $projectDir/apps/api
+	go install
 	cd $projectDir/apps/status_check
 	go install
 }

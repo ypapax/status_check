@@ -7,11 +7,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ypapax/status_check/config"
+
 	"gopkg.in/yaml.v2"
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/ypapax/status_check"
 	"github.com/ypapax/status_check/fake_service"
 
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,7 @@ func TestApi(t *testing.T) {
 	type testCase struct {
 		name            string
 		paths           []pathAndExpected
-		statusCheckConf status_check.Config
+		statusCheckConf config.Config
 		fakeServiceConf fake_service.Config
 		workTime        time.Duration
 	}
@@ -46,7 +47,7 @@ func TestApi(t *testing.T) {
 				{path: fmt.Sprintf("/services-count/faster/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 2},
 				{path: fmt.Sprintf("/services-count/slower/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 0},
 			},
-			statusCheckConf: status_check.Config{
+			statusCheckConf: config.Config{
 				Bind:             "0.0.0.0:3001",
 				CheckPeriod:      5 * time.Second,
 				DbType:           "psql",
@@ -70,7 +71,7 @@ func TestApi(t *testing.T) {
 				{path: fmt.Sprintf("/services-count/faster/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 2},
 				{path: fmt.Sprintf("/services-count/slower/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 0},
 			},
-			statusCheckConf: status_check.Config{
+			statusCheckConf: config.Config{
 				Bind:             "0.0.0.0:3001",
 				CheckPeriod:      5 * time.Second,
 				DbType:           "psql",
@@ -94,7 +95,7 @@ func TestApi(t *testing.T) {
 				{path: fmt.Sprintf("/services-count/faster/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 1014},
 				{path: fmt.Sprintf("/services-count/slower/%d/%d/%d", limitMS, from.Unix(), to.Unix()), expectedCount: 20},
 			},
-			statusCheckConf: status_check.Config{
+			statusCheckConf: config.Config{
 				Bind:             "0.0.0.0:3001",
 				CheckPeriod:      20 * time.Second,
 				DbType:           "psql",
