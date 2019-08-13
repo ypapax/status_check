@@ -2,45 +2,18 @@ package fake_service
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/ypapax/status_check/fake_config"
 
 	"github.com/ypapax/status_check/queue"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-
-	"gopkg.in/yaml.v2"
 )
 
-type Port struct {
-	From        int   `yaml:"from"`
-	To          int   `yaml:"to"`
-	StatusCodes []int `yaml:"codes"`
-	DelayMS     []int `yaml:"delay_ms"`
-}
-
-type Config struct {
-	Ports []Port `yaml:"ports"`
-}
-
-func ParseConf(r io.Reader) (*Config, error) {
-	b, err := ioutil.ReadAll(r)
-	if err != nil {
-		logrus.Error(err)
-		return nil, err
-	}
-	var c Config
-	if err := yaml.Unmarshal([]byte(b), &c); err != nil {
-		logrus.Error(err)
-		return nil, err
-	}
-	return &c, nil
-}
-
-func Serve(config *Config) error {
+func Serve(config *fake_config.Config) error {
 	serversCount := 0
 	for _, ports := range config.Ports {
 		for i := ports.From; i <= ports.To; i++ {
@@ -80,7 +53,7 @@ func serverOnPort(port int, statusCodes []int, delayMS []int) error {
 	return nil
 }
 
-func AllPorts(conf *Config) []int {
+func AllPorts(conf *fake_config.Config) []int {
 	var allPorts []int
 	for _, p := range conf.Ports {
 		for i := p.From; i <= p.To; i++ {

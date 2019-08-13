@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ypapax/status_check/fake_config"
+
 	"github.com/ypapax/status_check/config"
 
 	"gopkg.in/yaml.v2"
 
 	"github.com/sirupsen/logrus"
-
-	"github.com/ypapax/status_check/fake_service"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -33,7 +33,7 @@ func TestApi(t *testing.T) {
 		name            string
 		paths           []pathAndExpected
 		statusCheckConf config.Config
-		fakeServiceConf fake_service.Config
+		fakeServiceConf fake_config.Config
 		workTime        time.Duration
 	}
 
@@ -55,8 +55,8 @@ func TestApi(t *testing.T) {
 				Workers:          100,
 				Schemas:          []string{"https", "http"},
 			},
-			fakeServiceConf: fake_service.Config{
-				Ports: []fake_service.Port{
+			fakeServiceConf: fake_config.Config{
+				Ports: []fake_config.Port{
 					{From: 2001, To: 2001, StatusCodes: []int{200}},
 					{From: 3001, To: 3001, StatusCodes: []int{502}},
 				},
@@ -79,8 +79,8 @@ func TestApi(t *testing.T) {
 				Workers:          100,
 				Schemas:          []string{"https", "http"},
 			},
-			fakeServiceConf: fake_service.Config{
-				Ports: []fake_service.Port{
+			fakeServiceConf: fake_config.Config{
+				Ports: []fake_config.Port{
 					{From: 2001, To: 2001, StatusCodes: []int{200}},
 					{From: 3001, To: 3001, StatusCodes: []int{200, 502}},
 				},
@@ -103,8 +103,8 @@ func TestApi(t *testing.T) {
 				Workers:          200,
 				Schemas:          []string{"https", "http"},
 			},
-			fakeServiceConf: fake_service.Config{
-				Ports: []fake_service.Port{
+			fakeServiceConf: fake_config.Config{
+				Ports: []fake_config.Port{
 					{From: 2001, To: 3000, StatusCodes: []int{200}, DelayMS: []int{500}},
 					{From: 8001, To: 8010, StatusCodes: []int{200}, DelayMS: []int{1100}},
 					{From: 9001, To: 9010, StatusCodes: []int{200}, DelayMS: []int{1100, 500}},

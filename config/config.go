@@ -1,6 +1,12 @@
 package config
 
-import "time"
+import (
+	"fmt"
+	"gopkg.in/yaml.v2"
+	"io"
+	"io/ioutil"
+	"time"
+)
 
 type Config struct {
 	Bind             string        `yaml:"bind"`
@@ -12,3 +18,30 @@ type Config struct {
 	Addresses        []string      `yaml:"addresses"`
 }
 
+func (c Config) Validate() error {
+	if len(c.Addresses) == 0 {
+		return fmt.Errorf("Missing addresses list")
+	}
+	if len(c.Schemas) == 0 {
+		return fmt.Errorf("Missing schemas list")
+	}
+	if c.Workers <= 0 {
+		return fmt.Errorf("Workers amount should be positive")
+	}
+	if c.CheckPeriod == 0 {
+		return fmt.Errorf("Empty check period")
+	}
+	return nil
+}
+
+func Parse(reader io.Reader) (*Config, error) {
+	b, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	var c Config
+	if err := yaml.Unmarshal([]byte(b), &c); err != nil {
+		return nil, err
+	}
+	return &c, nil
+}

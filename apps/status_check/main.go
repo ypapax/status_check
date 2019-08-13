@@ -2,9 +2,11 @@ package main
 
 import (
 	"flag"
-	"github.com/sirupsen/logrus"
-	"github.com/ypapax/status_check"
 	"os"
+
+	"github.com/sirupsen/logrus"
+	"github.com/ypapax/status_check/checker"
+	"github.com/ypapax/status_check/config"
 )
 
 func main() {
@@ -18,12 +20,12 @@ func main() {
 		logrus.Error(err)
 		os.Exit(1)
 	}
-	c, err := status_check.ParseConf(f)
+	c, err := config.Parse(f)
 	if err != nil {
 		logrus.Error(err)
 		os.Exit(1)
 	}
-	if err := status_check.CheckServices(*c); err != nil {
+	if err := checker.Check(*c); err != nil {
 		logrus.Error(err)
 		os.Exit(1)
 	}

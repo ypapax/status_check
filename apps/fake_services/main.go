@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
+	"github.com/ypapax/status_check/fake_config"
 	"github.com/ypapax/status_check/fake_service"
 )
 
@@ -19,7 +20,7 @@ func main() {
 		logrus.Error(err)
 		os.Exit(1)
 	}
-	c, err := fake_service.ParseConf(f)
+	c, err := fake_config.Parse(f)
 	if err != nil {
 		logrus.Error(err)
 		os.Exit(1)

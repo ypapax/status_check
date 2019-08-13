@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ypapax/status_check/fake_config"
+
 	"github.com/ypapax/status_check/config"
 
 	"gopkg.in/yaml.v2"
@@ -206,7 +208,7 @@ func getCount(resp []byte) (int, error) {
 	return c.Count, nil
 }
 
-func allFakeServicesAddr(fakeServicesContainerName string, conf fake_service.Config) []string {
+func allFakeServicesAddr(fakeServicesContainerName string, conf fake_config.Config) []string {
 	ports := fake_service.AllPorts(&conf)
 	var fakeServicesAddr []string
 	for _, p := range ports {
