@@ -2,10 +2,11 @@ package config
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io"
 	"io/ioutil"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -16,6 +17,15 @@ type Config struct {
 	Workers          int           `yaml:"workers"`
 	Schemas          []string      `yaml:"schemas"`
 	Addresses        []string      `yaml:"addresses"`
+
+	PipeType string      `yaml:"pipe_type"`
+	Kafka    KafkaConfig `yaml:"kafka"`
+}
+
+type KafkaConfig struct {
+	Brokers     []string `yaml:"brokers"`
+	StatusTopic string   `yaml:"status_topic"`
+	ClientID    string   `yaml:"client_id"`
 }
 
 func (c Config) Validate() error {

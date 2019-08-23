@@ -24,11 +24,11 @@ Reports are the following:
 
 # Running in docker compose
 `./commands.sh runc`
-# Requesting amount of available services during last hour
+# Requesting amount of available services during last 5 minutes
 `./commands.sh avail`
 it prints:
 ```
-curl localhost:3000/services-count/available/1565681548/1565685148
+curl localhost:3000/services-count/available/1565698392/1565698992
 {"Count": 11}
 ```
 # Running tests

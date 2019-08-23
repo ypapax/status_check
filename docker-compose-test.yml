@@ -41,6 +41,25 @@ services:
       - ./database/psql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - test-network
+  kafka-test:
+    image: landoop/fast-data-dev
+    container_name: kafka-test
+    networks:
+      - test-network
+    ports:
+      - 3030:3030/tcp
+  listener:
+    container_name: status-listener-test
+    build:
+      context: .
+      dockerfile: apps/status_listener/Dockerfile
+    environment:
+      - CONF=/status_listener/test/status_check.test.conf.yaml
+    networks:
+      - test-network
+    depends_on:
+      - kafka-test
+      - postgres-test
 networks:
   test-network:
     external:

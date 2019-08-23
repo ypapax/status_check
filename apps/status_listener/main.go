@@ -2,16 +2,17 @@ package main
 
 import (
 	"flag"
+	"github.com/ypapax/logrus_conf"
 	"os"
 
+	"github.com/ypapax/status_check/listener"
+
 	"github.com/sirupsen/logrus"
-	"github.com/ypapax/logrus_conf"
-	"github.com/ypapax/status_check/api"
 	"github.com/ypapax/status_check/config"
 )
 
 func main() {
-	if err := logrus_conf.Files("api", logrus.TraceLevel); err != nil {
+	if err := logrus_conf.Files("status-listener", logrus.TraceLevel); err != nil {
 		panic(err)
 	}
 	var confPath string
@@ -27,8 +28,9 @@ func main() {
 		logrus.Error(err)
 		os.Exit(1)
 	}
-	if err := api.Serve(*c); err != nil {
+	if err := listener.ListenStatus(c); err != nil {
 		logrus.Error(err)
 		os.Exit(1)
 	}
+
 }

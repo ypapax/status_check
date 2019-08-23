@@ -12,7 +12,7 @@ import (
 )
 
 func Serve(conf config.Config) error {
-	_, statusService, err := status_check.Services(conf.DbType, conf.ConnectionString)
+	_, statusService, err := status_check.DbServices(conf.DbType, conf.ConnectionString)
 	if err != nil {
 		logrus.Error(err)
 		return err

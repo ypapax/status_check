@@ -28,6 +28,23 @@ services:
       - ./database/psql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - status-check-network
+  kafka:
+    image: landoop/fast-data-dev
+    container_name: kafka_status_check
+    networks:
+      - status-check-network
+  listener:
+    container_name: status_listener
+    build:
+      context: .
+      dockerfile: apps/status_listener/Dockerfile
+    environment:
+      - CONF=/status_listener/conf.yaml
+    networks:
+      - status-check-network
+    depends_on:
+      - kafka
+      - postgres
 
 networks:
   status-check-network:

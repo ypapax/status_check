@@ -1,6 +1,12 @@
 bind: 0.0.0.0:3000
 check_period: 1m
 db_type: psql
+pipe_type: kafka
+kafka:
+  brokers:
+    - kafka:9092
+  status_topic: status
+  client_id: local
 connection_string: postgresql://postgres@postgres/status_check?sslmode=disable
 workers: 3
 schemas:

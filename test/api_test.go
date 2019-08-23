@@ -36,11 +36,12 @@ func TestApi(t *testing.T) {
 		fakeServiceConf fake_config.Config
 		workTime        time.Duration
 	}
+	var kafkaConfig = config.KafkaConfig{Brokers: []string{"kafka-test:9092"}, StatusTopic: "status-test", ClientID: "test-client"}
 
 	cases := []testCase{
 		{
 			name:     "simple",
-			workTime: 20 * time.Second,
+			workTime: 40 * time.Second,
 			paths: []pathAndExpected{
 				{path: fmt.Sprintf("/services-count/available/%d/%d", from.Unix(), to.Unix()), expectedCount: 1},
 				{path: fmt.Sprintf("/services-count/not-available/%d/%d", from.Unix(), to.Unix()), expectedCount: 1},
@@ -54,6 +55,8 @@ func TestApi(t *testing.T) {
 				ConnectionString: "postgresql://postgres@postgres-test/status_check?sslmode=disable",
 				Workers:          100,
 				Schemas:          []string{"https", "http"},
+				PipeType:         "kafka",
+				Kafka:            kafkaConfig,
 			},
 			fakeServiceConf: fake_config.Config{
 				Ports: []fake_config.Port{
@@ -64,7 +67,7 @@ func TestApi(t *testing.T) {
 		},
 		{
 			name:     "diff_status",
-			workTime: 20 * time.Second,
+			workTime: 40 * time.Second,
 			paths: []pathAndExpected{
 				{path: fmt.Sprintf("/services-count/available/%d/%d", from.Unix(), to.Unix()), expectedCount: 1},
 				{path: fmt.Sprintf("/services-count/not-available/%d/%d", from.Unix(), to.Unix()), expectedCount: 1},
@@ -78,6 +81,8 @@ func TestApi(t *testing.T) {
 				ConnectionString: "postgresql://postgres@postgres-test/status_check?sslmode=disable",
 				Workers:          100,
 				Schemas:          []string{"https", "http"},
+				PipeType: "kafka",
+				Kafka:            kafkaConfig,
 			},
 			fakeServiceConf: fake_config.Config{
 				Ports: []fake_config.Port{
@@ -102,6 +107,8 @@ func TestApi(t *testing.T) {
 				ConnectionString: "postgresql://postgres@postgres-test/status_check?sslmode=disable",
 				Workers:          200,
 				Schemas:          []string{"https", "http"},
+				PipeType: "kafka",
+				Kafka:            kafkaConfig,
 			},
 			fakeServiceConf: fake_config.Config{
 				Ports: []fake_config.Port{

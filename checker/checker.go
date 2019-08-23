@@ -1,26 +1,30 @@
 package checker
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/ypapax/status_check"
 	"github.com/ypapax/status_check/config"
 	"github.com/ypapax/status_check/job"
-	"github.com/ypapax/status_check/statuses"
 	web_service "github.com/ypapax/status_check/web-service"
 
 	"github.com/sirupsen/logrus"
 )
-
-const writeStatusesToDbPeriod = 5 * time.Second
 
 func Check(conf config.Config) error {
 	if err := conf.Validate(); err != nil {
 		return err
 	}
 
-	webServicesService, statusService, err := status_check.Services(conf.DbType, conf.ConnectionString)
+	webServicesService, _, err := status_check.DbServices(conf.DbType, conf.ConnectionString)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	statusPipe, err := status_check.PipeServices(conf.PipeType, conf.Kafka.StatusTopic, conf.Kafka.ClientID, conf.Kafka.Brokers)
 	if err != nil {
 		logrus.Error(err)
 		return err
@@ -37,23 +41,9 @@ func Check(conf config.Config) error {
 		return err
 	}
 
-	logrus.Println("Services ", len(ss))
+	logrus.Println("DbServices ", len(ss))
 
-	var sts statuses.Statuses
-	go func() {
-		t := time.NewTicker(writeStatusesToDbPeriod)
-		for {
-			<-t.C
-			ss := sts.GetAll()
-			if len(ss) == 0 {
-				continue
-			}
-			if err := statusService.CreateStatus(ss); err != nil {
-				logrus.Error(err)
-			}
-		}
-	}()
-
+	parent := context.Background()
 	var jobs = make(chan job.Job, conf.Workers)
 	go func() {
 		for _, s := range ss {
@@ -90,7 +80,12 @@ func Check(conf config.Config) error {
 						logrus.Error(err)
 						return
 					}
-					sts.Add(*status)
+					logrus.Tracef("publishing status to a pipe %+v", *status)
+					if err := statusPipe.Publish(parent, *status); err != nil {
+						err := fmt.Errorf("error %+v for checking service %+v", err, j.Service)
+						logrus.Error(err)
+						return
+					}
 				}()
 			}
 		}(i)

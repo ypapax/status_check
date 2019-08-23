@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/ypapax/logrus_conf"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -10,8 +11,9 @@ import (
 )
 
 func main() {
-	logrus.SetReportCaller(true)
-	logrus.SetLevel(logrus.InfoLevel)
+	if err := logrus_conf.Files("fake-services", logrus.TraceLevel); err != nil {
+		panic(err)
+	}
 	var confPath string
 	flag.StringVar(&confPath, "conf", "fake-services.test.conf.yaml", "path to a config file")
 	flag.Parse()
